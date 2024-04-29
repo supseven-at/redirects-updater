@@ -1,14 +1,15 @@
 <?php
 
-declare(strict_types = 1);
+declare(strict_types=1);
+
 namespace Supseven\RedirectsUpdater\Command;
 
+use Doctrine\DBAL\DBALException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use TYPO3\CMS\Core\Database\ConnectionPool;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
 
 /**
  * Class ReplaceSourceHostCommand
@@ -17,6 +18,14 @@ use TYPO3\CMS\Core\Utility\GeneralUtility;
  */
 class ReplaceSourceHostCommand extends Command
 {
+    private QueryBuilder $redirectQuery;
+
+    public function __construct(QueryBuilder $redirectQuery)
+    {
+        $this->redirectQuery = $redirectQuery;
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this->setDescription('Replace existing source host with a new source host value');
@@ -32,12 +41,14 @@ class ReplaceSourceHostCommand extends Command
         );
     }
 
+    /**
+     * @throws DBALException
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
-            ->getQueryBuilderForTable('sys_redirect');
+        $queryBuilder = $this->redirectQuery;
 
-        $queryBuilder
+        $updateQuery = $queryBuilder
             ->update('sys_redirect')
             ->where(
                 $queryBuilder->expr()->eq(
@@ -51,8 +62,14 @@ class ReplaceSourceHostCommand extends Command
                 'sys_redirect.source_host',
                 $input->getArgument('to')
             )
-            ->execute();
+            ->executeStatement();
 
-        return 0;
+        if ($updateQuery > 0) {
+            $output->writeln('<info>Updated ' . $updateQuery . ' redirects from source_host ' .  $input->getArgument('from') . ' → ' . $input->getArgument('to') . '.</info>');
+        }
+
+        $output->writeln('<info>Please run "./typo3cms redirects:checkintegrity" to check resulting redirects for problems.</info>');
+
+        return Command::SUCCESS;
     }
 }

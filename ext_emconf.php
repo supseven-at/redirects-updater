@@ -1,12 +1,13 @@
 <?php
-declare(strict_types = 1);
+
+declare(strict_types=1);
 
 $EM_CONF[$_EXTKEY] = [
     'title'       => 'redirects_updater',
     'description' => 'Easily replace the source_host of existing TYPO3 redirects',
     'constraints' => [
         'depends' => [
-            'typo3' => '10.4.0-10.4.99',
+            'typo3' => '11.5.0-11.5.99',
         ],
     ],
     'autoload' => [
