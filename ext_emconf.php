@@ -7,7 +7,7 @@ $EM_CONF[$_EXTKEY] = [
     'description' => 'Easily replace the source_host of existing TYPO3 redirects',
     'constraints' => [
         'depends' => [
-            'typo3' => '11.5.0-11.5.99',
+            'typo3' => '12.4.0-12.4.99',
         ],
     ],
     'autoload' => [
