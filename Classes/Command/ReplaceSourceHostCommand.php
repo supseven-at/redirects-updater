@@ -10,6 +10,8 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Redirects\Service\RedirectCacheService;
 
 /**
  * Class ReplaceSourceHostCommand
@@ -66,8 +68,14 @@ class ReplaceSourceHostCommand extends Command
 
         if ($updateQuery > 0) {
             $output->writeln('<info>Updated ' . $updateQuery . ' redirects from source_host ' .  $input->getArgument('from') . ' → ' . $input->getArgument('to') . '.</info>');
-        }
 
+        }
+        // Clear cache to reflect updated redirects
+        /** @var $cacheService RedirectCacheService */
+        $cacheService = GeneralUtility::makeInstance(RedirectCacheService::class);
+        $cacheService->rebuildAll();
+
+        // Add hint to run integrity check after redirect record changes
         $output->writeln('<info>Please run "./typo3cms redirects:checkintegrity" to check resulting redirects for problems.</info>');
 
         return Command::SUCCESS;
